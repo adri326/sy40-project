@@ -1,0 +1,3 @@
+[submodule "petri/dep/petri"]
+	path = petri/dep/petri
+	url = https://github.com/adri326/petri.rs
