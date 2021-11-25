@@ -1,4 +1,4 @@
-use petri::*;
+use petri_network::*;
 
 fn main() {
     let network = PetriNetwork::new(
@@ -13,7 +13,7 @@ fn main() {
         ]
     );
 
-    assert_eq!(network.generate_graph(), PetriGraph::from(vec![
+    assert_eq!(network.generate_graph(), PetriGraph::from([
         (vec![1, 0, 0, 0, 0], vec![vec![0, 1, 0, 0, 0], vec![0, 0, 1, 0, 0]]),
         (vec![0, 1, 0, 0, 0], vec![vec![0, 0, 0, 1, 0]]),
         (vec![0, 0, 1, 0, 0], vec![vec![0, 0, 0, 0, 1]]),
