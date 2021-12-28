@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-petri_network = { path = "dep/petri", features = ["conflict_normal"] }
+petri_network = { path = "dep/petri", features = ["conflict_normal", "export_dot"] }

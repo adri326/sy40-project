@@ -72,4 +72,38 @@ One boat is stationned at the shore of either cranes and does not need a mutex t
 The traffic lane works differently: all of the trucks are instructed to sit on a parking and are given a pager.
 The paired pager is given to either `α`, `β` or `γ`, it represents the exlusive ownership of that truck; this pager can only be given to another process by its owner.
 
-Once a truck is unloaded
+Once a truck is unloaded, its pager is passed to the other crane.
+Once a truck is loaded, its pager is passed to `γ` to send the truck away and generate a new truck at its place.
+
+### How communication works
+
+`γ` is a "sleeping" agent: it needs to be woken up with a monitor to then operate on the messages it receives.
+For an agent `σ` to notify `γ`, we need a message queue `Q(γ)`, alongside a mutex `S(γ)` and a monitor `M(γ)`:
+
+```
+Function send_γ(message) in σ:
+    S(γ).P() // Deadlock warning: S(σ) must be unlocked at this instruction
+    Q(γ).send(message)
+    M(γ).signal(S(γ))
+
+Loop in γ:
+    M(γ).wait()
+    message = Q(γ).read()
+    S(γ).V()
+    // Handle message
+```
+
+`α` and `β` never sleep, so communication with them is easier. They each have a mutex `S(α)` and `S(β)` and a message queue `Q(α)` and `Q(β)`.
+
+```
+Function send(message, τ: α|β) in σ:
+    S(τ).P() // Deadlock warning: S(σ) must be unlocked at this instruction
+    Q(τ).send(message)
+    S(τ).V()
+
+Loop in τ:
+    S(τ).P() // Safe to assume that S(τ) is likely to have been previously locked in the current thread
+    message = Q(τ).read()
+    S(τ).V()
+    // Handle message
+```
