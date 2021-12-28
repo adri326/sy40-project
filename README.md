@@ -69,4 +69,7 @@ One boat is stationned at the shore of either cranes and does not need a mutex t
 
 ### How the traffic lane works
 
-<!-- TODO -->
+The traffic lane works differently: all of the trucks are instructed to sit on a parking and are given a pager.
+The paired pager is given to either `α`, `β` or `γ`, it represents the exlusive ownership of that truck; this pager can only be given to another process by its owner.
+
+Once a truck is unloaded
