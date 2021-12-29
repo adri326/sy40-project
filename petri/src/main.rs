@@ -17,7 +17,7 @@ fn clock(builder: &mut PetriBuilder, cycle_length: usize, active: bool) -> (usiz
     }
 
     let mut last = first;
-    for n in 1..cycle_length {
+    for _n in 1..cycle_length {
         let next = builder.node(0);
         builder.transition(vec![last], vec![next]);
         last = next;
@@ -27,7 +27,7 @@ fn clock(builder: &mut PetriBuilder, cycle_length: usize, active: bool) -> (usiz
     (first, last)
 }
 
-struct BoatNetwork {
+struct TruckNetwork {
     initial: usize,
     empty: usize,
     full: usize,
@@ -37,7 +37,7 @@ struct BoatNetwork {
     network: PetriNetwork
 }
 
-fn boat_network(clock_period: usize, unload: bool, load: bool) -> BoatNetwork {
+fn truck_network(clock_period: usize, unload: bool, load: bool) -> TruckNetwork {
     let mut builder = PetriBuilder::new();
 
     let initial = builder.node(1);
@@ -89,7 +89,7 @@ fn boat_network(clock_period: usize, unload: bool, load: bool) -> BoatNetwork {
         builder.transition(vec![load, empty], vec![full, beta_loop, semaphores[2].index()]);
     }
 
-    BoatNetwork {
+    TruckNetwork {
         initial,
         empty,
         full,
@@ -101,7 +101,7 @@ fn boat_network(clock_period: usize, unload: bool, load: bool) -> BoatNetwork {
 }
 
 fn main() {
-    let network = boat_network(2, true, true);
+    let network = truck_network(2, true, true);
 
     let mut file = std::fs::File::create("target/exported.dot").expect("Open target/exported.dot");
     network.network.export_dot(&mut file);
@@ -109,9 +109,9 @@ fn main() {
 }
 
 #[test]
-fn test_boat_network_unload() {
+fn test_truck_network_unload() {
     for period in 2..5 {
-        let network = boat_network(period, true, false);
+        let network = truck_network(period, true, false);
         let graph = network.network.generate_graph();
 
         // Assert that only one semaphore is active at a time
@@ -153,9 +153,9 @@ fn test_boat_network_unload() {
 
 
 #[test]
-fn test_boat_network_load() {
+fn test_truck_network_load() {
     for period in 2..5 {
-        let network = boat_network(period, true, true);
+        let network = truck_network(period, true, true);
         let graph = network.network.generate_graph();
 
         // Assert that only one semaphore is active at a time
