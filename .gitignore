@@ -5,3 +5,5 @@ Cargo.lock
 *.kra
 *.kra~
 *.png~
+
+build/
