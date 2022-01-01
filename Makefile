@@ -7,6 +7,7 @@ EXE_NAME := sy40_project
 INCLUDES += ./dep/ulid/
 DEPS += ulid.o
 CFLAGS += -pthread
+CFLAGS += -g
 
 .PHONY: default_target all clean
 
