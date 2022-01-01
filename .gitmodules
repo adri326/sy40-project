@@ -1,3 +1,6 @@
 [submodule "petri/dep/petri"]
 	path = petri/dep/petri
 	url = https://github.com/adri326/petri.rs
+[submodule "dep/ulid"]
+	path = dep/ulid
+	url = https://github.com/skeeto/ulid-c
