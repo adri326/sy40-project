@@ -35,7 +35,7 @@ void print_boat(const boat_t* boat, bool newline) {
     ulid_encode(encoded, boat->ulid);
 
     printf(
-        "Boat { destination = %s (%zu), ulid = %s, boats = [%s",
+        "Boat { destination = %s (%zu), ulid = %s, containers = [%s",
         DESTINATION_NAMES[boat->destination],
         boat->destination,
         encoded,

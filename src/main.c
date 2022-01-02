@@ -7,6 +7,7 @@
 #include "assert.h"
 #include "container.h"
 #include "boat.h"
+#include "control_tower.h"
 
 #define USE_THREADS
 
@@ -20,6 +21,7 @@ void lfork(THREAD_TYPE* res, void* (*entry)(void*));
 void wait_success(THREAD_TYPE* thread, char* name);
 
 static boat_lane_t boat_lane_alpha, boat_lane_beta;
+static control_tower_t control_tower_gamma;
 
 void* crane_alpha_entry(void* data) {
     boat_t boat_1 = new_boat(2, 3);
@@ -31,6 +33,12 @@ void* crane_alpha_entry(void* data) {
     boat_deque_push_back(boat_lane_alpha.queue, boat_2);
 
     boat_deque_print(boat_lane_alpha.queue, true);
+
+    union message_data msg_data;
+    passert(boat_deque_pop_front(boat_lane_alpha.queue, &msg_data.boat));
+    message_t* msg = new_message(BOAT_EMPTY, msg_data);
+    control_tower_send(&control_tower_gamma, msg);
+    printf("Sent message\n");
 
     boat_lane_unlock(&boat_lane_alpha);
 
@@ -44,6 +52,16 @@ void* crane_beta_entry(void* data) {
 }
 
 void* control_tower_entry(void* data) {
+    while (true) {
+        printf("Waiting for message\n");
+        message_t* message = control_tower_receive(&control_tower_gamma);
+        printf("Received message\n");
+
+        print_message(message);
+
+        free(message);
+        break;
+    }
 
     // print_boat(&boat, true);
     pthread_exit(NULL);
@@ -54,6 +72,7 @@ int main(int argc, char* argv[]) {
 
     boat_lane_alpha = new_boat_lane();
     boat_lane_beta = new_boat_lane();
+    control_tower_gamma = new_control_tower();
 
     lfork(&crane_alpha, crane_alpha_entry);
     lfork(&crane_beta, crane_beta_entry);
@@ -65,6 +84,7 @@ int main(int argc, char* argv[]) {
 
     free_boat_lane(&boat_lane_alpha);
     free_boat_lane(&boat_lane_beta);
+    free_control_tower(&control_tower_gamma);
 }
 
 #ifdef USE_THREADS
