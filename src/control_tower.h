@@ -8,6 +8,9 @@ Particularly, it contains the functions necessary to communicate with the contro
 #ifndef CONTROL_TOWER_H
 #define CONTROL_TOWER_H
 
+#define N_TRUCKS 10
+#define N_BOATS 20
+
 struct control_tower;
 
 #include <pthread.h>

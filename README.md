@@ -1,6 +1,28 @@
 # sy40-project
 Project for the SY40 class ("Architecture of operating systems")
 
+## Installation
+
+First, clone this repository:
+
+```sh
+git clone https://github.com/adri326/sy40-project
+cd sy40-project
+```
+
+Then, retrieve the submodules:
+
+```sh
+git submodule update --init
+```
+
+Finally, run `make` to compile the project and run the binary in `./build/sy40_project`:
+
+```sh
+make -j
+./build/sy40_project
+```
+
 ## Design
 
 The constraints set by the project are as follows:

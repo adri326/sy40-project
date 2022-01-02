@@ -143,9 +143,6 @@ void control_tower_send_train(control_tower_t* tower, train_t** train) {
     control_tower_new_train(tower, train);
 }
 
-#define N_TRUCKS 10
-#define N_BOATS 20
-
 void* control_tower_entry(void* data) {
     srand(time(0));
     control_tower_t* control_tower = (control_tower_t*)data;
