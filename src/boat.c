@@ -11,7 +11,7 @@ boat_t new_boat(size_t destination, size_t n_cargo) {
     res.destination = destination;
 
     size_t n = 0;
-    for (; n < n_cargo; n++) { // fill the n_cargo first elements with random destinations
+    for (; n < n_cargo && n < BOAT_CONTAINERS; n++) { // fill the n_cargo first elements with random destinations
         size_t dest = rand() % N_DESTINATIONS;
         if (dest == destination && N_DESTINATIONS > 1) {
             // (X ~> U[0; n[) + (Y ~> U[0; n[) ~> U[0; n[ in the finite field (ℕ mod n)
