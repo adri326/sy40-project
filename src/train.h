@@ -56,6 +56,7 @@ void print_wagon(wagon_t* wagon, bool newline);
 /// Returns information about how loaded a wagon is
 bool wagon_is_full(wagon_t* wagon);
 size_t wagon_loaded(wagon_t* wagon);
+container_holder_t* wagon_first_empty(wagon_t* wagon);
 
 train_t* new_train(size_t destination, size_t n_wagons);
 

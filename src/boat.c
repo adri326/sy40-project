@@ -66,6 +66,13 @@ size_t boat_loaded(boat_t* boat) {
     return res;
 }
 
+container_holder_t* boat_first_empty(boat_t* boat) {
+    for (size_t n = 0; n < BOAT_CONTAINERS; n++) {
+        if (boat->containers[n].is_empty) return &boat->containers[n];
+    }
+    return NULL;
+}
+
 boat_deque* new_boat_deque(size_t capacity) {
     passert_gt(size_t, "%zu", capacity, 0, "Capacity may not be zero, as to avoid undefined behavior.");
 

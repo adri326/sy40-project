@@ -32,6 +32,7 @@ void print_boat(const boat_t* boat, bool newline);
 
 bool boat_is_full(boat_t* boat);
 size_t boat_loaded(boat_t* boat);
+container_holder_t* boat_first_empty(boat_t* boat);
 
 /// Boat double-ended queue (DEQue)
 struct boat_deque {

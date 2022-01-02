@@ -25,6 +25,24 @@ truck_t new_truck(size_t destination) {
     return res;
 }
 
+truck_t empty_truck(size_t destination) {
+    struct ulid_generator* generator = get_generator();
+    truck_t res;
+
+    passert_lt(size_t, "%zu", destination, N_DESTINATIONS);
+    res.destination = destination;
+
+    res.container = new_container_holder(true, 0);
+
+    res.loading = true;
+
+    char encoded[27];
+    ulid_generate(generator, encoded);
+    ulid_decode(res.ulid, encoded);
+
+    return res;
+}
+
 void print_truck(truck_t* truck, bool newline) {
     char encoded[27];
     ulid_encode(encoded, truck->ulid);
@@ -102,7 +120,7 @@ truck_t* truck_lane_accepts(truck_lane_t* lane, size_t destination) {
     while (current != NULL) {
         truck_t* truck = current->truck;
 
-        if (!truck->loading && truck->destination == destination) return truck;
+        if (truck->loading && truck->destination == destination) return truck;
 
         current = current->next;
     }

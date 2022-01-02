@@ -43,7 +43,7 @@ void* crane_beta_entry(void* data) {
 
     truck_t t = new_truck(3);
     truck_lane_push(&crane_beta.truck_lane, &t);
-    truck_lane_print(&crane_beta.truck_lane, true);
+    // truck_lane_print(&crane_beta.truck_lane, true);
 
     while (true) {
         message_t* message = crane_receive(&crane_beta);
@@ -81,6 +81,10 @@ int main(int argc, char* argv[]) {
     control_tower_gamma = new_control_tower();
     crane_alpha = new_crane(false, true);
     crane_beta = new_crane(true, false);
+
+    boat_deque_push_back(crane_alpha.boat_lane.queue, new_boat(1, 5));
+    truck_t truck = empty_truck(2);
+    truck_lane_push(&crane_alpha.truck_lane, &truck);
 
     lfork(&crane_alpha.thread, crane_entry, (void*)&crane_alpha);
     lfork(&crane_beta.thread, crane_beta_entry, NULL);

@@ -25,6 +25,9 @@ typedef struct truck truck_t;
 /// Creates a new truck
 truck_t new_truck(size_t destination);
 
+/// Creates a new, empty truck
+truck_t empty_truck(size_t destination);
+
 /// Used for debugging
 void print_truck(truck_t* truck, bool newline);
 

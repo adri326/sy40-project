@@ -79,14 +79,28 @@ message_t* crane_receive(crane_t* crane) {
     }
 }
 
-bool crane_unload(crane_t* crane, container_holder_t* holder, size_t destination) {
+bool crane_unload(crane_t* crane, container_holder_t* holder) {
+    size_t destination = holder->container.destination;
+
+    if (crane->load_boats && crane->boat_lane.has_current_boat) { // Try to unload a container onto the current boat
+        boat_t* boat = &crane->boat_lane.current_boat;
+
+        if (boat->destination == destination && !boat_is_full(boat)) {
+            transfer_container(
+                holder,
+                boat_first_empty(boat)
+            );
+            // TODO: notify γ if the boat is full
+        }
+    }
+
     if (crane->load_trains) { // Try to unload a container onto a train
         wagon_t* wagon;
         train_lane_lock(&crane->train_lane);
         if ((wagon = train_lane_accepts(&crane->train_lane, destination))) {
             transfer_container(
                 holder,
-                &wagon->containers[wagon_loaded(wagon)]
+                wagon_first_empty(wagon)
             );
             train_lane_unlock(&crane->train_lane);
             // TODO: notify γ if the wagon is full
@@ -123,22 +137,40 @@ void* crane_entry(void* data) {
             free_message(msg);
         }
 
+        // Let a boat in
+        if (!crane->boat_lane.has_current_boat) {
+            boat_lane_lock(&crane->boat_lane);
+            if (boat_deque_pop_front(crane->boat_lane.queue, &crane->boat_lane.current_boat)) {
+                crane->boat_lane.has_current_boat = true;
+                printf("A boat stops at the crane!\n");
+            }
+            boat_lane_unlock(&crane->boat_lane);
+        }
+
         // Try to move a container
         could_move = false;
 
         // Unload from the boat lane
-        if (!crane->load_boats) {
-            boat_lane_lock(&crane->boat_lane);
-            for (size_t n = 0; n < crane->boat_lane.queue->length; n++) {
-                boat_t* boat = boat_deque_get(crane->boat_lane.queue, n);
+        if (!crane->load_boats && crane->boat_lane.has_current_boat) {
+            boat_t* boat = &crane->boat_lane.current_boat;
+            bool has_cargo = false;
+            for (size_t n = 0; n < BOAT_CONTAINERS; n++) {
+                if (boat->containers[n].is_empty) continue;
 
-                if (crane_unload(crane, &boat->containers[boat_loaded(boat)], boat->destination)) {
+                if (crane_unload(crane, &boat->containers[n])) {
                     could_move = true;
+                    printf("SUCCESS!\n");
                     // TODO: notify γ if the boat is empty
                     break;
+                } else {
+                    has_cargo = true;
                 }
             }
-            boat_lane_unlock(&crane->boat_lane);
+
+            if (!has_cargo) {
+                boat_lane_lock(&crane->boat_lane);
+                boat_lane_unlock(&crane->boat_lane);
+            }
 
             if (could_move) continue;
         }

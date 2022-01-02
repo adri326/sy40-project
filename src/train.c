@@ -67,6 +67,13 @@ size_t wagon_loaded(wagon_t* wagon) {
     return res;
 }
 
+container_holder_t* wagon_first_empty(wagon_t* wagon) {
+    for (size_t n = 0; n < WAGON_CONTAINERS; n++) {
+        if (wagon->containers[n].is_empty) return &wagon->containers[n];
+    }
+    return NULL;
+}
+
 train_t* new_train(size_t destination, size_t n_wagons) {
     train_t* res = malloc(sizeof(train_t));
 
