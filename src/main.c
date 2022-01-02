@@ -41,13 +41,22 @@ void* crane_beta_entry(void* data) {
     container_t container = new_container(1);
     // print_container(&container, true);
 
+    truck_t t = new_truck(3);
+    truck_lane_push(&crane_beta.truck_lane, &t);
+    truck_lane_print(&crane_beta.truck_lane, true);
+
     while (true) {
         message_t* message = crane_receive(&crane_beta);
         if (message != NULL) {
             print_message(message);
+            boat_lane_lock(&crane_beta.boat_lane);
+            boat_deque_push_back(crane_beta.boat_lane.queue, message->data.boat);
+            boat_lane_unlock(&crane_beta.boat_lane);
             break;
         }
     }
+
+    print_crane(&crane_beta);
 
     pthread_exit(NULL);
 }

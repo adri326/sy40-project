@@ -78,6 +78,8 @@ boat_lane_t new_boat_lane();
 /// Should be called once for every boat_lane_t instance
 void free_boat_lane(boat_lane_t* boat_lane);
 
+void boat_lane_print(boat_lane_t* boat_lane, bool short_version);
+
 /// Locks and unlocks the mutex of the boat_lane_t instance
 void boat_lane_lock(boat_lane_t* boat_lane);
 void boat_lane_unlock(boat_lane_t* boat_lane);

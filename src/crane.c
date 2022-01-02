@@ -30,6 +30,18 @@ void free_crane(crane_t* crane) {
     pthread_mutex_destroy(&crane->message_mutex);
 }
 
+void print_crane(crane_t* crane) {
+    printf(
+        "=== Crane { load_boats = %s, load_trains = %s } ===\n",
+        crane->load_boats ? "true" : "false",
+        crane->load_trains ? "true" : "false"
+    );
+    boat_lane_print(&crane->boat_lane, true);
+    train_lane_print(&crane->train_lane, true);
+    truck_lane_print(&crane->truck_lane, true);
+    printf("=== ~ ===\n");
+}
+
 void crane_send(crane_t* crane, message_t* message) {
     // S(τ).P()
     passert_eq(int, "%d", pthread_mutex_lock(&crane->message_mutex), 0);

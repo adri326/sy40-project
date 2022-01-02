@@ -75,12 +75,16 @@ void truck_lane_print(truck_lane_t* lane, bool short_version) {
         truck_t* truck = current->truck;
         printf("  ");
         if (short_version) {
+            if (truck->loading) printf("»");
+            else printf("«");
+
             if (truck->container.is_empty) printf("(-)");
             else if (truck->container.container.destination == truck->destination) {
                 printf("(v)");
             } else {
                 printf("(x)");
             }
+
             printf(" -> %s (%zu),\n", DESTINATION_NAMES[truck->destination], truck->destination);
         } else {
             print_container_holder(&truck->container, false);

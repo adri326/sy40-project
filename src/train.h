@@ -7,6 +7,7 @@ Contains the `wagon_t` and `train_t` structures.
 #define TRAIN_H
 
 #include "container.h"
+#include <stdbool.h>
 
 #define WAGON_CONTAINERS 2
 #define TRAIN_WAGONS 10
@@ -49,6 +50,9 @@ typedef struct train train_t;
 /// Creates a new wagon instance; will read the destination from `train`.
 wagon_t new_wagon(const train_t* train, size_t n_cargo);
 
+/// Used for debugging
+void print_wagon(wagon_t* wagon, bool newline);
+
 train_t* new_train(size_t destination, size_t n_wagons);
 
 void free_train(train_t* train);
@@ -66,6 +70,9 @@ train_lane_t new_train_lane();
 
 /// Frees a train lane; does not free the wagons in it
 void free_train_lane(train_lane_t* train_lane);
+
+/// Used for debugging
+void train_lane_print(train_lane_t* train_lane, bool short_version);
 
 /// Locks and unlocks the underlying mutex
 void train_lane_lock(train_lane_t* train_lane);

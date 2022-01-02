@@ -30,6 +30,28 @@ wagon_t new_wagon(const train_t* train, size_t n_cargo) {
     return res;
 }
 
+void print_wagon(wagon_t* wagon, bool newline) {
+    char encoded[27];
+    ulid_encode(encoded, wagon->ulid);
+
+    printf(
+        "Wagon { destination = %s (%zu), ulid = %s, train = %p, containers = [%s",
+        DESTINATION_NAMES[wagon->destination],
+        wagon->destination,
+        encoded,
+        wagon->train,
+        newline ? "\n" : ""
+    );
+
+    for (size_t n = 0; n < WAGON_CONTAINERS; n++) {
+        if (newline) printf("  ");
+        print_container_holder(&wagon->containers[n], false);
+        if (n < WAGON_CONTAINERS - 1) printf(", %s", newline ? "\n" : "");
+    }
+
+    printf("%s] }%s", newline ? "\n" : "", newline ? "\n" : "");
+}
+
 train_t* new_train(size_t destination, size_t n_wagons) {
     train_t* res = malloc(sizeof(train_t));
 
@@ -81,4 +103,28 @@ void train_lane_append(train_lane_t* train_lane, wagon_t* wagon) {
 
     train_lane->wagons[train_lane->n_wagons] = wagon;
     train_lane->n_wagons++;
+}
+
+void train_lane_print(train_lane_t* train_lane, bool short_version) {
+    printf("TrainLane { n_wagons = %zu, wagons = [\n", train_lane->n_wagons);
+
+    for (size_t n = 0; n < train_lane->n_wagons; n++) {
+        printf("  ");
+        if (short_version) {
+            wagon_t* wagon = train_lane->wagons[n];
+            printf("(");
+            for (size_t o = 0; o < WAGON_CONTAINERS; o++) {
+                if (wagon->containers[o].is_empty) {
+                    printf("-");
+                } else if (wagon->destination != wagon->containers[o].container.destination) {
+                    printf("x");
+                } else {
+                    printf("v");
+                }
+            }
+            printf(") -> %s (%zu),\n", DESTINATION_NAMES[wagon->destination], wagon->destination);
+        } else {
+            print_wagon(train_lane->wagons[n], false);
+        }
+    }
 }

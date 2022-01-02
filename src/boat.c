@@ -154,6 +154,33 @@ void free_boat_lane(boat_lane_t* boat_lane) {
     pthread_mutex_destroy(&boat_lane->mutex);
 }
 
+void boat_lane_print(boat_lane_t* boat_lane, bool short_version) {
+    printf("BoatLane { queue = ");
+    boat_deque_print(boat_lane->queue, short_version);
+    if (!boat_lane->has_current_boat) {
+        printf(", current_boat = None }\n");
+    } else {
+        printf(", current_boat = ");
+        if (short_version) {
+            printf("(");
+            boat_t* boat = &boat_lane->current_boat;
+            for (size_t o = 0; o < BOAT_CONTAINERS; o++) {
+                if (boat->containers[o].is_empty) {
+                    printf("-");
+                } else if (boat->destination != boat->containers[o].container.destination) {
+                    printf("x");
+                } else {
+                    printf("v");
+                }
+            }
+            printf(")");
+        } else {
+            print_boat(&boat_lane->current_boat, false);
+        }
+        printf(" }\n");
+    }
+}
+
 void boat_lane_lock(boat_lane_t* boat_lane) {
     passert_eq(int, "%d", pthread_mutex_lock(&boat_lane->mutex), 0);
 }

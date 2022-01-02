@@ -37,6 +37,9 @@ crane_t new_crane(bool load_boats, bool load_trains);
 /// Should be called once for each crane_t instance
 void free_crane(crane_t* crane);
 
+/// Used for debugging
+void print_crane(crane_t* crane);
+
 /// Safely sends a message to the crane, locking and unlocking the necessary mutexes.
 void crane_send(crane_t* crane, message_t* message);
 
