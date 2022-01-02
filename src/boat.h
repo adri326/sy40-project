@@ -30,6 +30,7 @@ boat_t new_boat(size_t destination, size_t n_cargo);
 /// Prints a boat, used for debugging.
 void print_boat(const boat_t* boat, bool newline);
 
+/// Boat double-ended queue (DEQue)
 struct boat_deque {
     boat_t* buffer;
     size_t capacity;
@@ -61,5 +62,24 @@ void boat_deque_push_back(boat_deque* queue, boat_t boat);
 
 /// Prints a boat queue, used for debugging
 void boat_deque_print(boat_deque* queue, bool short_version);
+
+struct boat_lane {
+    boat_deque* queue;
+    boat_t current_boat;
+    bool has_current_boat;
+
+    pthread_mutex_t mutex;
+};
+typedef struct boat_lane boat_lane_t;
+
+/// Creates a new boat_lane, with an empty queue and no stationned boat
+boat_lane_t new_boat_lane();
+
+/// Should be called once for every boat_lane_t instance
+void free_boat_lane(boat_lane_t* boat_lane);
+
+/// Locks and unlocks the mutex of the boat_lane_t instance
+void boat_lane_lock(boat_lane_t* boat_lane);
+void boat_lane_unlock(boat_lane_t* boat_lane);
 
 #endif // BOAT_H

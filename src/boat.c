@@ -1,6 +1,7 @@
 #include "boat.h"
 #include "assert.h"
 #include "ulid.h"
+#include <pthread.h>
 
 boat_t new_boat(size_t destination, size_t n_cargo) {
     struct ulid_generator* generator = get_generator();
@@ -133,4 +134,30 @@ void boat_deque_print(boat_deque* queue, bool short_version) {
         }
         printf("\n] }\n");
     }
+}
+
+boat_lane_t new_boat_lane() {
+    boat_lane_t res;
+    res.queue = new_boat_deque(1);
+    res.has_current_boat = false;
+
+    pthread_mutexattr_t attributes;
+    passert_eq(int, "%d", pthread_mutexattr_init(&attributes), 0);
+    passert_eq(int, "%d", pthread_mutex_init(&res.mutex, &attributes), 0);
+    passert_eq(int, "%d", pthread_mutexattr_destroy(&attributes), 0);
+
+    return res;
+}
+
+void free_boat_lane(boat_lane_t* boat_lane) {
+    free_boat_deque(boat_lane->queue);
+    pthread_mutex_destroy(&boat_lane->mutex);
+}
+
+void boat_lane_lock(boat_lane_t* boat_lane) {
+    passert_eq(int, "%d", pthread_mutex_lock(&boat_lane->mutex), 0);
+}
+
+void boat_lane_unlock(boat_lane_t* boat_lane) {
+    passert_eq(int, "%d", pthread_mutex_unlock(&boat_lane->mutex), 0);
 }

@@ -19,9 +19,21 @@
 void lfork(THREAD_TYPE* res, void* (*entry)(void*));
 void wait_success(THREAD_TYPE* thread, char* name);
 
+static boat_lane_t boat_lane_alpha, boat_lane_beta;
+
 void* crane_alpha_entry(void* data) {
-    container_t container = new_container(0);
-    // print_container(&container, true);
+    boat_t boat_1 = new_boat(2, 3);
+    boat_t boat_2 = new_boat(1, 2);
+
+    boat_lane_lock(&boat_lane_alpha);
+
+    boat_deque_push_back(boat_lane_alpha.queue, boat_1);
+    boat_deque_push_back(boat_lane_alpha.queue, boat_2);
+
+    boat_deque_print(boat_lane_alpha.queue, true);
+
+    boat_lane_unlock(&boat_lane_alpha);
+
     pthread_exit(NULL);
 }
 
@@ -32,22 +44,16 @@ void* crane_beta_entry(void* data) {
 }
 
 void* control_tower_entry(void* data) {
-    boat_t boat_1 = new_boat(2, 3);
-    boat_t boat_2 = new_boat(1, 2);
-    boat_deque* queue = new_boat_deque(1);
-    boat_deque_push_back(queue, boat_1);
-    boat_deque_push_back(queue, boat_2);
 
-    boat_deque_print(queue, false);
-    boat_deque_print(queue, true);
-
-    free_boat_deque(queue);
     // print_boat(&boat, true);
     pthread_exit(NULL);
 }
 
 int main(int argc, char* argv[]) {
     THREAD_TYPE crane_alpha, crane_beta, control_tower;
+
+    boat_lane_alpha = new_boat_lane();
+    boat_lane_beta = new_boat_lane();
 
     lfork(&crane_alpha, crane_alpha_entry);
     lfork(&crane_beta, crane_beta_entry);
@@ -56,6 +62,9 @@ int main(int argc, char* argv[]) {
     wait_success(&crane_alpha, "crane_alpha");
     wait_success(&crane_beta, "crane_beta");
     wait_success(&control_tower, "control_tower");
+
+    free_boat_lane(&boat_lane_alpha);
+    free_boat_lane(&boat_lane_beta);
 }
 
 #ifdef USE_THREADS
