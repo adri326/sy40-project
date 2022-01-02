@@ -154,6 +154,15 @@ bool crane_unload(crane_t* crane, container_holder_t* holder) {
     }
 }
 
+void crane_handle_message(crane_t* crane, message_t* message) {
+    switch (message->type) {
+        case TRUCK_NEW:
+        case TRUCK_EMPTY:
+            truck_lane_push(&crane->truck_lane, message->data.truck);
+            break;
+    }
+}
+
 void* crane_entry(void* data) {
     crane_t* crane = (crane_t*)data;
 
@@ -164,8 +173,10 @@ void* crane_entry(void* data) {
         message_t* msg = crane_receive(crane);
 
         if (msg != NULL) {
-            // handle message
+            crane_handle_message(crane, msg);
             free_message(msg);
+        } else if (!could_move) {
+            // print_crane(crane);
         }
 
         // Let a boat in

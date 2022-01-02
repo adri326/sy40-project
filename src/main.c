@@ -16,21 +16,6 @@ void wait_success(pthread_t* thread, char* name);
 static control_tower_t control_tower_gamma;
 static crane_t crane_alpha, crane_beta;
 
-void* control_tower_entry(void* data) {
-    while (true) {
-        message_t* message = control_tower_receive(&control_tower_gamma);
-
-        print_message(message);
-
-        crane_send(&crane_beta, message);
-
-        free_message(message);
-        break;
-    }
-
-    // print_boat(&boat, true);
-    pthread_exit(NULL);
-}
 
 int main(int argc, char* argv[]) {
     control_tower_gamma = new_control_tower();
@@ -39,6 +24,8 @@ int main(int argc, char* argv[]) {
 
     crane_alpha.control_tower = &control_tower_gamma;
     crane_beta.control_tower = &control_tower_gamma;
+    control_tower_gamma.crane_alpha = &crane_alpha;
+    control_tower_gamma.crane_beta = &crane_beta;
 
     boat_deque_push_back(crane_alpha.boat_lane.queue, new_boat(1, 5));
     truck_t truck = empty_truck(2);
@@ -46,7 +33,7 @@ int main(int argc, char* argv[]) {
 
     lfork(&crane_alpha.thread, crane_entry, (void*)&crane_alpha);
     lfork(&crane_beta.thread, crane_entry, (void*)&crane_beta);
-    lfork(&control_tower_gamma.thread, control_tower_entry, NULL);
+    lfork(&control_tower_gamma.thread, control_tower_entry, (void*)&control_tower_gamma);
 
     wait_success(&crane_alpha.thread, "crane_alpha");
     wait_success(&crane_beta.thread, "crane_beta");

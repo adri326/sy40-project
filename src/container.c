@@ -63,4 +63,5 @@ void transfer_container(container_holder_t* from, container_holder_t* to) {
 
     to->container = from->container;
     from->is_empty = true;
+    to->is_empty = false;
 }

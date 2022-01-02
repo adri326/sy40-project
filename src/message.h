@@ -9,12 +9,14 @@ Common class for `control_tower.h` and `crane.h`, which handles the messages.
 #include "boat.h"
 #include "truck.h"
 #include "train.h"
+#include <pthread.h>
 
 enum message_type {
     BOAT_EMPTY,
     BOAT_FULL,
     TRUCK_FULL,
     TRUCK_EMPTY,
+    TRUCK_NEW,
     WAGON_FULL,
     WAGON_EMPTY
 };
@@ -31,6 +33,8 @@ struct message {
 
     struct message* next;
     unsigned char ulid[16];
+
+    pthread_t sender;
 };
 typedef struct message message_t;
 
