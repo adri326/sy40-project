@@ -11,11 +11,16 @@ crane_t new_crane() {
     passert_eq(int, "%d", pthread_mutex_init(&res.message_mutex, &attributes), 0);
     passert_eq(int, "%d", pthread_mutexattr_destroy(&attributes), 0);
 
+    res.boat_lane = new_boat_lane();
+    res.train_lane = new_train_lane();
+
     return res;
 }
 
 void free_crane(crane_t* crane) {
     free_message(crane->message_queue);
+    free_boat_lane(&crane->boat_lane);
+    free_train_lane(&crane->train_lane);
 
     pthread_mutex_destroy(&crane->message_mutex);
 }

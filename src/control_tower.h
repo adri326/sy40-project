@@ -18,6 +18,8 @@ struct control_tower {
 
     pthread_mutex_t message_mutex;
     pthread_cond_t message_monitor;
+
+    pthread_t thread;
 };
 typedef struct control_tower control_tower_t;
 

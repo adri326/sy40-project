@@ -10,13 +10,18 @@ themselves in `message.h`
 #define CRANE_H
 
 #include "message.h"
+#include "boat.h"
+#include "train.h"
 #include <pthread.h>
 
 struct crane {
     message_t* message_queue;
     pthread_mutex_t message_mutex;
 
-    // TODO: add boat lane, train lane and truck lane
+    boat_lane_t boat_lane;
+    train_lane_t train_lane;
+
+    pthread_t thread;
 };
 typedef struct crane crane_t;
 
