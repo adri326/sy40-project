@@ -8,6 +8,7 @@
 #include "container.h"
 #include "boat.h"
 #include "control_tower.h"
+#include "crane.h"
 
 #define USE_THREADS
 
@@ -22,6 +23,7 @@ void wait_success(THREAD_TYPE* thread, char* name);
 
 static boat_lane_t boat_lane_alpha, boat_lane_beta;
 static control_tower_t control_tower_gamma;
+static crane_t crane_t_alpha, crane_t_beta;
 
 void* crane_alpha_entry(void* data) {
     boat_t boat_1 = new_boat(2, 3);
@@ -47,6 +49,15 @@ void* crane_alpha_entry(void* data) {
 void* crane_beta_entry(void* data) {
     container_t container = new_container(1);
     // print_container(&container, true);
+
+    while (true) {
+        message_t* message = crane_receive(&crane_t_beta);
+        if (message != NULL) {
+            print_message(message);
+            break;
+        }
+    }
+
     pthread_exit(NULL);
 }
 
@@ -55,6 +66,8 @@ void* control_tower_entry(void* data) {
         message_t* message = control_tower_receive(&control_tower_gamma);
 
         print_message(message);
+
+        crane_send(&crane_t_beta, message);
 
         free_message(message);
         break;
@@ -70,6 +83,8 @@ int main(int argc, char* argv[]) {
     boat_lane_alpha = new_boat_lane();
     boat_lane_beta = new_boat_lane();
     control_tower_gamma = new_control_tower();
+    crane_t_alpha = new_crane();
+    crane_t_beta = new_crane();
 
     lfork(&crane_alpha, crane_alpha_entry);
     lfork(&crane_beta, crane_beta_entry);
@@ -82,6 +97,8 @@ int main(int argc, char* argv[]) {
     free_boat_lane(&boat_lane_alpha);
     free_boat_lane(&boat_lane_beta);
     free_control_tower(&control_tower_gamma);
+    free_crane(&crane_t_alpha);
+    free_crane(&crane_t_beta);
 }
 
 #ifdef USE_THREADS
