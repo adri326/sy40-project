@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include "assert.h"
 #include "container.h"
+#include "boat.h"
 
 #define USE_THREADS
 
@@ -20,19 +21,19 @@ void wait_success(THREAD_TYPE* thread, char* name);
 
 void* crane_alpha_entry(void* data) {
     container_t container = new_container(0);
-    print_container(&container, true);
+    // print_container(&container, true);
     pthread_exit(NULL);
 }
 
 void* crane_beta_entry(void* data) {
     container_t container = new_container(1);
-    print_container(&container, true);
+    // print_container(&container, true);
     pthread_exit(NULL);
 }
 
 void* control_tower_entry(void* data) {
-    container_t container = new_container(2);
-    print_container(&container, true);
+    boat_t boat = new_boat(2, 3);
+    print_boat(&boat, true);
     pthread_exit(NULL);
 }
 

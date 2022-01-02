@@ -8,6 +8,7 @@ INCLUDES += ./dep/ulid/
 DEPS += ulid.o
 CFLAGS += -pthread
 CFLAGS += -g
+CFLAGS += -Wall
 
 .PHONY: default_target all clean
 

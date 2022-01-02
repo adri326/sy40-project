@@ -22,7 +22,7 @@ static const char* DESTINATION_NAMES[N_DESTINATIONS] = {
 struct container {
     /// The index of the destination, guaranteed to be a valid index of DESINATION_NAMES
     size_t destination;
-    /// A printable Universally Unique Lexicographically Sortable Identifier (ULID), unique to the container
+    /// A unique identifier for the container, see ulid.h for more information
     unsigned char ulid[16];
 };
 typedef struct container container_t;
@@ -31,7 +31,7 @@ typedef struct container container_t;
 container_t new_container(size_t destination);
 
 /// Used for debugging
-void print_container(container_t* container, bool newline);
+void print_container(const container_t* container, bool newline);
 
 /// Used by vehicles
 struct container_holder {
@@ -44,6 +44,6 @@ typedef struct container_holder container_holder_t;
 container_holder_t new_container_holder(bool is_empty, size_t destination);
 
 /// Used for debugging
-void print_container_holder(container_holder_t* holder, bool newline);
+void print_container_holder(const container_holder_t* holder, bool newline);
 
 #endif // CONTAINER_H

@@ -1,40 +1,7 @@
 #include "container.h"
 #include <string.h>
-#include <ulid.h>
-#include <pthread.h>
 #include "assert.h"
-
-static pthread_key_t ulid_key;
-static pthread_once_t key_once = PTHREAD_ONCE_INIT;
-
-/// Should be called once per thread to destroy the ulid generator for that thread
-void thread_container_destroy() {
-    struct ulid_generator* res = (struct ulid_generator*)pthread_getspecific(ulid_key);
-
-    if (res != NULL) {
-        free(res);
-        pthread_setspecific(ulid_key, NULL);
-    }
-}
-
-/// Must be called once per thread to initialize the ulid generator for that thread
-void thread_container_init() {
-    pthread_key_create(&ulid_key, thread_container_destroy);
-}
-
-/// Returns a ulid_generator unique to the current thread.
-struct ulid_generator* get_generator() {
-    pthread_once(&key_once, thread_container_init);
-    struct ulid_generator* res = (struct ulid_generator*)pthread_getspecific(ulid_key);
-
-    if (res == NULL) {
-        res = malloc(sizeof(struct ulid_generator));
-        ulid_generator_init(res, ULID_RELAXED);
-        pthread_setspecific(ulid_key, res);
-    }
-
-    return res;
-}
+#include "ulid.h"
 
 /// Creates a new container; a thread-specific ulid_generator is implicitely created
 container_t new_container(size_t destination) {
@@ -51,7 +18,7 @@ container_t new_container(size_t destination) {
 }
 
 /// Used for debugging
-void print_container(container_t* container, bool newline) {
+void print_container(const container_t* container, bool newline) {
     char encoded[27];
     ulid_encode(encoded, container->ulid);
     printf(
@@ -80,7 +47,7 @@ container_holder_t new_container_holder(bool is_empty, size_t destination) {
 }
 
 /// Used for debugging
-void print_container_holder(container_holder_t* holder, bool newline) {
+void print_container_holder(const container_holder_t* holder, bool newline) {
     if (holder->is_empty) {
         printf("(Empty)%s", newline ? "\n" : "");
     } else {
