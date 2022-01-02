@@ -1,5 +1,6 @@
 #include "crane.h"
 #include "assert.h"
+#include <unistd.h>
 
 crane_t new_crane(bool load_boats, bool load_trains) {
     crane_t res;
@@ -160,11 +161,26 @@ void crane_handle_message(crane_t* crane, message_t* message) {
         case TRUCK_EMPTY:
             truck_lane_push(&crane->truck_lane, message->data.truck);
             break;
+        default:
+            // noop
+            break;
     }
 }
 
 void* crane_entry(void* data) {
     crane_t* crane = (crane_t*)data;
+
+    usleep(100000);
+    while (true) {
+        message_t* msg = crane_receive(crane);
+
+        if (msg != NULL) {
+            crane_handle_message(crane, msg);
+            free_message(msg);
+        } else {
+            break;
+        }
+    }
 
     print_crane(crane);
 
@@ -201,7 +217,7 @@ void* crane_entry(void* data) {
 
                 if (crane_unload(crane, &boat->containers[n])) {
                     could_move = true;
-                    printf("SUCCESS!\n");
+                    // printf("SUCCESS!\n");
                 } else {
                     has_cargo = true;
                 }
@@ -218,15 +234,19 @@ void* crane_entry(void* data) {
 
             for (size_t n = 0; n < crane->train_lane.n_wagons; n++) {
                 wagon_t* wagon = crane->train_lane.wagons[n];
-                if (!wagon_is_empty(wagon)) continue;
+                if (wagon_is_empty(wagon)) continue;
 
                 for (size_t o = 0; o < WAGON_CONTAINERS; o++) {
                     if (wagon->containers[o].is_empty) continue;
 
                     if (crane_unload(crane, &wagon->containers[o])) {
                         could_move = true;
-                        printf("SUCCESS!\n");
+                        // printf("SUCCESS!\n");
                     }
+                }
+
+                if (wagon_is_empty(wagon)) {
+                    crane_notify_wagon(crane, WAGON_EMPTY, wagon);
                 }
             }
 
@@ -240,7 +260,7 @@ void* crane_entry(void* data) {
             if (!truck->loading) {
                 if (crane_unload(crane, &truck->container)) {
                     could_move = true;
-                    printf("SUCCESS!\n");
+                    // printf("SUCCESS!\n");
                     current_truck = current_truck->next;
                     crane_notify_truck(crane, TRUCK_EMPTY, truck);
                     continue;

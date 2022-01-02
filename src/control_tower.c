@@ -102,8 +102,47 @@ void control_tower_new_boat(control_tower_t* tower) {
     boat_lane_unlock(boat_lane);
 }
 
+void control_tower_transfer_wagons(control_tower_t* tower, train_t* train) {
+    train_lane_t* lane_alpha = &tower->crane_alpha->train_lane;
+    train_lane_t* lane_beta = &tower->crane_beta->train_lane;
+
+    size_t n_wagons = 0;
+    for (size_t n = train->offset; n < train->n_wagons; n++) {
+        if (train->wagon_empty[n]) n_wagons++;
+        else break;
+    }
+    train_lane_lock(lane_beta);
+    train_lane_shift(lane_beta, n_wagons);
+    train_lane_lock(lane_alpha);
+    for (size_t n = train->offset; n < train->offset + n_wagons; n++) {
+        train_lane_append(lane_alpha, &train->wagons[n]);
+    }
+    train->offset += n_wagons;
+    train_lane_unlock(lane_beta);
+    train_lane_unlock(lane_alpha);
+}
+
+void control_tower_new_train(control_tower_t* tower, train_t** train) {
+    *train = new_train(rand() % N_DESTINATIONS, rand() % TRAIN_WAGONS);
+    train_lane_lock(&tower->crane_beta->train_lane);
+    for (size_t n = 0; n < (*train)->n_wagons; n++) {
+        train_lane_append(&tower->crane_beta->train_lane, &(*train)->wagons[n]);
+    }
+    train_lane_unlock(&tower->crane_beta->train_lane);
+}
+
+void control_tower_send_train(control_tower_t* tower, train_t** train) {
+    train_lane_t* lane_alpha = &tower->crane_alpha->train_lane;
+
+    train_lane_lock(lane_alpha);
+    train_lane_shift(lane_alpha, (*train)->n_wagons);
+    train_lane_unlock(lane_alpha);
+
+    control_tower_new_train(tower, train);
+}
+
 #define N_TRUCKS 10
-#define N_BOATS 10
+#define N_BOATS 20
 
 void* control_tower_entry(void* data) {
     control_tower_t* control_tower = (control_tower_t*)data;
@@ -118,10 +157,18 @@ void* control_tower_entry(void* data) {
         control_tower_new_boat(control_tower);
     }
 
+    train_t* trains[2];
+    size_t first_train = 0;
+
+    control_tower_new_train(control_tower, &trains[0]);
+    control_tower_new_train(control_tower, &trains[1]);
+
+    train_lane_print(&control_tower->crane_beta->train_lane, true);
+
     while (true) {
         message_t* message = control_tower_receive(control_tower);
 
-        print_message(message);
+        // print_message(message);
 
         switch (message->type) {
             case TRUCK_NEW:
@@ -159,13 +206,63 @@ void* control_tower_entry(void* data) {
             }
             case BOAT_EMPTY: { // boat is empty, move it to crane_beta
                 boat_t boat = message->data.boat;
-                print_boat(&boat, true);
+                // print_boat(&boat, true);
 
                 boat_lane_t* boat_lane = &control_tower->crane_beta->boat_lane;
 
                 boat_lane_lock(boat_lane);
                 boat_deque_push_back(boat_lane->queue, boat);
                 boat_lane_unlock(boat_lane);
+                break;
+            }
+            case WAGON_EMPTY: { // wagon is empty, flag it as such
+                printf("WAGON_EMPTY\n");
+                wagon_t* wagon = message->data.wagon;
+                // print_wagon(wagon, true);
+
+                for (size_t t = 0; t < 2; t++) {
+                    for (size_t n = 0; n < trains[t]->n_wagons; n++) {
+                        if (&trains[t]->wagons[n] == wagon) {
+                            trains[t]->wagon_empty[n] = true;
+                        }
+                    }
+                }
+
+                // If the head wagons are empty
+                // ISSUE: This may rarely fail
+                if (
+                    trains[first_train]->offset < trains[first_train]->n_wagons
+                    && trains[first_train]->wagon_empty[trains[first_train]->offset]
+                ) {
+                    printf("Train %zu ... transfer\n", first_train);
+                    control_tower_transfer_wagons(control_tower, trains[first_train]);
+                    // train_lane_print(&control_tower->crane_alpha->train_lane, true);
+                    // train_lane_print(&control_tower->crane_beta->train_lane, true);
+
+                    if (trains[first_train]->offset == trains[first_train]->n_wagons) {
+                        first_train = 1 - first_train;
+                    }
+                }
+                break;
+            }
+            case WAGON_FULL: {
+                printf("WAGON_FULL\n");
+                wagon_t* wagon = message->data.wagon;
+                // print_wagon(wagon, true);
+
+                for (size_t t = 0; t < 2; t++) {
+                    bool is_full = true;
+                    for (size_t n = 0; n < trains[t]->n_wagons; n++) {
+                        if (&trains[t]->wagons[n] == wagon) {
+                            trains[t]->wagon_full[n] = true;
+                        }
+                        if (!trains[t]->wagon_full[n]) is_full = false;
+                    }
+                    if (is_full) {
+                        printf("Train => %s (%zu)\n", DESTINATION_NAMES[trains[t]->destination], trains[t]->destination);
+                        control_tower_send_train(control_tower, &trains[t]);
+                    }
+                }
                 break;
             }
         }

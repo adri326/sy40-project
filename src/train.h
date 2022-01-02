@@ -10,7 +10,7 @@ Contains the `wagon_t` and `train_t` structures.
 #include <stdbool.h>
 
 #define WAGON_CONTAINERS 2
-#define TRAIN_WAGONS 10
+#define TRAIN_WAGONS 4
 #define LANE_WAGONS (2 * TRAIN_WAGONS)
 
 struct train;
@@ -39,8 +39,14 @@ struct train {
     /// The number of wagons that the train has; guaranteed to be less than or equal to TRAIN_WAGONS
     size_t n_wagons;
 
-    /// True if the wagon is full and ready to be sent
+    /// true if the wagon is full and ready to be sent
     bool wagon_full[TRAIN_WAGONS];
+
+    /// true if the wagon is empty and can be moved to the next crane
+    bool wagon_empty[TRAIN_WAGONS];
+
+    /// how many wagons were advanced already
+    size_t offset;
 
     /// Guaranteed to be a valid index of DESTINATION_NAMES
     size_t destination;

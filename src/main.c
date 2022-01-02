@@ -32,6 +32,7 @@ int main(int argc, char* argv[]) {
     truck_lane_push(&crane_alpha.truck_lane, &truck);
 
     lfork(&crane_alpha.thread, crane_entry, (void*)&crane_alpha);
+    usleep(50000);
     lfork(&crane_beta.thread, crane_entry, (void*)&crane_beta);
     lfork(&control_tower_gamma.thread, control_tower_entry, (void*)&control_tower_gamma);
 

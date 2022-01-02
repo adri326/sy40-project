@@ -91,7 +91,10 @@ train_t* new_train(size_t destination, size_t n_wagons) {
     for (size_t n = 0; n < n_wagons && n < TRAIN_WAGONS; n++) {
         res->wagons[n] = new_wagon(res, rand() % WAGON_CONTAINERS);
         res->wagon_full[n] = false;
+        res->wagon_empty[n] = false;
     }
+
+    res->offset = 0;
 
     return res;
 }
@@ -163,6 +166,8 @@ void train_lane_print(train_lane_t* train_lane, bool short_version) {
             print_wagon(train_lane->wagons[n], false);
         }
     }
+
+    printf("] }\n");
 }
 
 wagon_t* train_lane_accepts(train_lane_t* train_lane, size_t destination) {
