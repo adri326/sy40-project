@@ -56,6 +56,10 @@ void print_message(message_t* message) {
             print_wagon(message->data.wagon, false);
             printf("}\n");
             break;
+
+        case CRANE_STUCK:
+            printf("Message { type = CRANE_STUCK, data = %s }\n", message->data.stuck ? "true" : "false");
+            break;
     }
 }
 

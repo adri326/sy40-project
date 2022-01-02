@@ -18,13 +18,15 @@ enum message_type {
     TRUCK_EMPTY,
     TRUCK_NEW,
     WAGON_FULL,
-    WAGON_EMPTY
+    WAGON_EMPTY,
+    CRANE_STUCK
 };
 
 union message_data {
     boat_t boat;
     truck_t* truck;
     wagon_t* wagon; // NOTE: this value of wagon may not be dereferenced
+    bool stuck;
 };
 
 struct message {

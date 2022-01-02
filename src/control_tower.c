@@ -21,7 +21,9 @@ control_tower_t new_control_tower() {
 }
 
 void free_control_tower(control_tower_t* control_tower) {
-    free_message(control_tower->message_queue);
+    // if (control_tower->message_queue != NULL) {
+    //     free_message(control_tower->message_queue);
+    // }
 
     pthread_mutex_destroy(&control_tower->message_mutex);
     pthread_cond_destroy(&control_tower->message_monitor);
@@ -145,6 +147,7 @@ void control_tower_send_train(control_tower_t* tower, train_t** train) {
 #define N_BOATS 20
 
 void* control_tower_entry(void* data) {
+    srand(time(0));
     control_tower_t* control_tower = (control_tower_t*)data;
 
     // Create a bunch of trucks :)
@@ -165,7 +168,8 @@ void* control_tower_entry(void* data) {
 
     train_lane_print(&control_tower->crane_beta->train_lane, true);
 
-    while (true) {
+    bool loop = true;
+    while (loop) {
         message_t* message = control_tower_receive(control_tower);
 
         // print_message(message);
@@ -216,7 +220,7 @@ void* control_tower_entry(void* data) {
                 break;
             }
             case WAGON_EMPTY: { // wagon is empty, flag it as such
-                printf("WAGON_EMPTY\n");
+                // printf("WAGON_EMPTY\n");
                 wagon_t* wagon = message->data.wagon;
                 // print_wagon(wagon, true);
 
@@ -246,7 +250,7 @@ void* control_tower_entry(void* data) {
                 break;
             }
             case WAGON_FULL: {
-                printf("WAGON_FULL\n");
+                // printf("WAGON_FULL\n");
                 wagon_t* wagon = message->data.wagon;
                 // print_wagon(wagon, true);
 
@@ -264,6 +268,24 @@ void* control_tower_entry(void* data) {
                     }
                 }
                 break;
+            }
+            case CRANE_STUCK: {
+                // Check if both cranes are stuck
+                pthread_mutex_lock(&control_tower->crane_alpha->stuck_mutex);
+                bool alpha_stuck = control_tower->crane_alpha->stuck;
+                pthread_mutex_unlock(&control_tower->crane_alpha->stuck_mutex);
+                pthread_mutex_lock(&control_tower->crane_alpha->stuck_mutex);
+                bool beta_stuck = control_tower->crane_beta->stuck;
+                pthread_mutex_unlock(&control_tower->crane_alpha->stuck_mutex);
+
+                if (alpha_stuck && beta_stuck) {
+                    union message_data msg_data;
+                    msg_data.stuck = true;
+                    message_t* message = new_message(CRANE_STUCK, msg_data);
+                    crane_send(control_tower->crane_beta, message);
+                    crane_send(control_tower->crane_alpha, message);
+                    loop = false;
+                }
             }
         }
 

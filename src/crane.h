@@ -33,6 +33,10 @@ struct crane {
     struct control_tower* control_tower;
 
     pthread_t thread;
+
+    size_t boats_cycled;
+    bool stuck;
+    pthread_mutex_t stuck_mutex;
 };
 typedef struct crane crane_t;
 

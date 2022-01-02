@@ -13,11 +13,15 @@ crane_t new_crane(bool load_boats, bool load_trains) {
     passert_eq(int, "%d", pthread_mutexattr_init(&attributes), 0);
     passert_eq(int, "%d", pthread_mutexattr_setpshared(&attributes, 1), 0);
     passert_eq(int, "%d", pthread_mutex_init(&res.message_mutex, &attributes), 0);
+    passert_eq(int, "%d", pthread_mutex_init(&res.stuck_mutex, &attributes), 0);
     passert_eq(int, "%d", pthread_mutexattr_destroy(&attributes), 0);
 
     res.boat_lane = new_boat_lane();
     res.train_lane = new_train_lane();
     res.truck_lane = new_truck_lane();
+
+    res.stuck = false;
+    res.boats_cycled = 0;
 
     return res;
 }
@@ -161,6 +165,9 @@ void crane_handle_message(crane_t* crane, message_t* message) {
         case TRUCK_EMPTY:
             truck_lane_push(&crane->truck_lane, message->data.truck);
             break;
+        case CRANE_STUCK:
+            pthread_exit(NULL);
+            break;
         default:
             // noop
             break;
@@ -200,7 +207,7 @@ void* crane_entry(void* data) {
             boat_lane_lock(&crane->boat_lane);
             if (boat_deque_pop_front(crane->boat_lane.queue, &crane->boat_lane.current_boat)) {
                 crane->boat_lane.has_current_boat = true;
-                printf("A boat stops at the crane!\n");
+                // printf("A boat stops at the crane!\n");
             }
             boat_lane_unlock(&crane->boat_lane);
         }
@@ -267,6 +274,36 @@ void* crane_entry(void* data) {
                 }
             }
             current_truck = current_truck->next;
+        }
+
+        if (!could_move && crane->boat_lane.has_current_boat) {
+            boat_lane_lock(&crane->boat_lane);
+            boat_deque_push_back(crane->boat_lane.queue, crane->boat_lane.current_boat);
+            crane->boat_lane.has_current_boat = false;
+            boat_lane_unlock(&crane->boat_lane);
+            crane->boats_cycled++;
+        }
+
+        if (!could_move) {
+            boat_lane_lock(&crane->boat_lane);
+            if (crane->boats_cycled >= crane->boat_lane.queue->length) {
+                boat_lane_unlock(&crane->boat_lane);
+                // We are stuck
+
+                pthread_mutex_lock(&crane->stuck_mutex);
+                crane->stuck = true;
+                pthread_mutex_unlock(&crane->stuck_mutex);
+                union message_data msg_data;
+                msg_data.stuck = true;
+
+                control_tower_send(crane->control_tower, new_message(CRANE_STUCK, msg_data));
+            } else {
+                boat_lane_unlock(&crane->boat_lane);
+            }
+        }
+
+        if (could_move) {
+            crane->boats_cycled = 0;
         }
     }
 
