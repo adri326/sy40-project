@@ -46,4 +46,6 @@ container_holder_t new_container_holder(bool is_empty, size_t destination);
 /// Used for debugging
 void print_container_holder(const container_holder_t* holder, bool newline);
 
+void transfer_container(container_holder_t* from, container_holder_t* to);
+
 #endif // CONTAINER_H

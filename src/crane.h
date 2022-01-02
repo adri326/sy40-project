@@ -47,4 +47,6 @@ void crane_send(crane_t* crane, message_t* message);
 /// Otherwise, returns NULL
 message_t* crane_receive(crane_t* crane);
 
+void* crane_entry(void* data);
+
 #endif // CRANE_H

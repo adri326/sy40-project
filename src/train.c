@@ -52,6 +52,21 @@ void print_wagon(wagon_t* wagon, bool newline) {
     printf("%s] }%s", newline ? "\n" : "", newline ? "\n" : "");
 }
 
+bool wagon_is_full(wagon_t* wagon) {
+    for (size_t n = 0; n < WAGON_CONTAINERS; n++) {
+        if (wagon->containers[n].is_empty) return false;
+    }
+    return true;
+}
+
+size_t wagon_loaded(wagon_t* wagon) {
+    size_t res = 0;
+    for (size_t n = 0; n < WAGON_CONTAINERS; n++) {
+        if (!wagon->containers[n].is_empty) res += 1;
+    }
+    return res;
+}
+
 train_t* new_train(size_t destination, size_t n_wagons) {
     train_t* res = malloc(sizeof(train_t));
 
@@ -88,6 +103,13 @@ train_lane_t new_train_lane() {
 
 void free_train_lane(train_lane_t* train_lane) {
     pthread_mutex_destroy(&train_lane->mutex);
+}
+
+void train_lane_lock(train_lane_t* train_lane) {
+    pthread_mutex_lock(&train_lane->mutex);
+}
+void train_lane_unlock(train_lane_t* train_lane) {
+    pthread_mutex_unlock(&train_lane->mutex);
 }
 
 void train_lane_shift(train_lane_t* train_lane, size_t shift_by) {
@@ -127,4 +149,14 @@ void train_lane_print(train_lane_t* train_lane, bool short_version) {
             print_wagon(train_lane->wagons[n], false);
         }
     }
+}
+
+wagon_t* train_lane_accepts(train_lane_t* train_lane, size_t destination) {
+    for (size_t n = 0; n < train_lane->n_wagons; n++) {
+        wagon_t* wagon = train_lane->wagons[n];
+
+        if (wagon->destination == destination && !wagon_is_full(wagon)) return wagon;
+    }
+
+    return NULL;
 }

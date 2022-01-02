@@ -78,3 +78,72 @@ message_t* crane_receive(crane_t* crane) {
         return NULL;
     }
 }
+
+bool crane_unload(crane_t* crane, container_holder_t* holder, size_t destination) {
+    if (crane->load_trains) { // Try to unload a container onto a train
+        wagon_t* wagon;
+        train_lane_lock(&crane->train_lane);
+        if ((wagon = train_lane_accepts(&crane->train_lane, destination))) {
+            transfer_container(
+                holder,
+                &wagon->containers[wagon_loaded(wagon)]
+            );
+            train_lane_unlock(&crane->train_lane);
+            // TODO: notify γ if the wagon is full
+            return true;
+        }
+        train_lane_unlock(&crane->train_lane);
+    }
+
+    // Otherwise, try to unload the container onto a truck
+    truck_t* truck = truck_lane_accepts(&crane->truck_lane, destination);
+    if (truck != NULL) {
+        transfer_container(
+            holder,
+            &truck->container
+        );
+        // TODO: notify γ if the truck is full
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void* crane_entry(void* data) {
+    crane_t* crane = (crane_t*)data;
+
+    print_crane(crane);
+
+    bool could_move = true;
+    while (true) {
+        message_t* msg = crane_receive(crane);
+
+        if (msg != NULL) {
+            // handle message
+            free_message(msg);
+        }
+
+        // Try to move a container
+        could_move = false;
+
+        // Unload from the boat lane
+        if (!crane->load_boats) {
+            boat_lane_lock(&crane->boat_lane);
+            for (size_t n = 0; n < crane->boat_lane.queue->length; n++) {
+                boat_t* boat = boat_deque_get(crane->boat_lane.queue, n);
+
+                if (crane_unload(crane, &boat->containers[boat_loaded(boat)], boat->destination)) {
+                    could_move = true;
+                    // TODO: notify γ if the boat is empty
+                    break;
+                }
+            }
+            boat_lane_unlock(&crane->boat_lane);
+
+            if (could_move) continue;
+        }
+    }
+
+    pthread_exit(NULL);
+    return NULL;
+}

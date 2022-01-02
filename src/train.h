@@ -53,6 +53,10 @@ wagon_t new_wagon(const train_t* train, size_t n_cargo);
 /// Used for debugging
 void print_wagon(wagon_t* wagon, bool newline);
 
+/// Returns information about how loaded a wagon is
+bool wagon_is_full(wagon_t* wagon);
+size_t wagon_loaded(wagon_t* wagon);
+
 train_t* new_train(size_t destination, size_t n_wagons);
 
 void free_train(train_t* train);
@@ -85,5 +89,10 @@ void train_lane_shift(train_lane_t* train_lane, size_t shift_by);
 /// Appends a wagon to the train lane
 /// Does *not* lock the underlying mutex
 void train_lane_append(train_lane_t* train_lane, wagon_t* wagon);
+
+/// Finds and returns a wagon_t that can accept a container with destination `destination`;
+/// If none are found, returns NULL
+/// Does *not* lock the train lane (as the returned reference outlives the function's scope)
+wagon_t* train_lane_accepts(train_lane_t* train_lane, size_t destination);
 
 #endif // TRAIN_H

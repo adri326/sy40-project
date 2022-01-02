@@ -30,6 +30,9 @@ boat_t new_boat(size_t destination, size_t n_cargo);
 /// Prints a boat, used for debugging.
 void print_boat(const boat_t* boat, bool newline);
 
+bool boat_is_full(boat_t* boat);
+size_t boat_loaded(boat_t* boat);
+
 /// Boat double-ended queue (DEQue)
 struct boat_deque {
     boat_t* buffer;
@@ -78,10 +81,16 @@ boat_lane_t new_boat_lane();
 /// Should be called once for every boat_lane_t instance
 void free_boat_lane(boat_lane_t* boat_lane);
 
+/// Used for debugging, does *not* lock the boat lane
 void boat_lane_print(boat_lane_t* boat_lane, bool short_version);
 
 /// Locks and unlocks the mutex of the boat_lane_t instance
 void boat_lane_lock(boat_lane_t* boat_lane);
 void boat_lane_unlock(boat_lane_t* boat_lane);
+
+/// Finds and returns a boat_t that can accept a container with destination `destination`;
+/// If none are found, returns NULL
+/// Does *not* lock the boat lane (as the returned reference outlives the function's scope)
+boat_t* boat_lane_accepts(boat_lane_t* boat_lane, size_t destination);
 
 #endif // BOAT_H

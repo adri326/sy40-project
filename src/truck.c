@@ -95,3 +95,17 @@ void truck_lane_print(truck_lane_t* lane, bool short_version) {
 
     printf("]\n");
 }
+
+truck_t* truck_lane_accepts(truck_lane_t* lane, size_t destination) {
+    struct truck_ll* current = lane->trucks;
+
+    while (current != NULL) {
+        truck_t* truck = current->truck;
+
+        if (!truck->loading && truck->destination == destination) return truck;
+
+        current = current->next;
+    }
+
+    return NULL;
+}

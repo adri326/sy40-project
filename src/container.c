@@ -56,3 +56,11 @@ void print_container_holder(const container_holder_t* holder, bool newline) {
         printf(")%s", newline ? "\n" : "");
     }
 }
+
+void transfer_container(container_holder_t* from, container_holder_t* to) {
+    passert(!from->is_empty, "Expected source container holder to have a container.");
+    passert(to->is_empty, "Expected target container holder to be empty.");
+
+    to->container = from->container;
+    from->is_empty = true;
+}

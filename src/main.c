@@ -10,7 +10,7 @@
 #include "control_tower.h"
 #include "crane.h"
 
-void lfork(pthread_t* res, void* (*entry)(void*));
+void lfork(pthread_t* res, void* (*entry)(void*), void* data);
 void wait_success(pthread_t* thread, char* name);
 
 static control_tower_t control_tower_gamma;
@@ -82,9 +82,9 @@ int main(int argc, char* argv[]) {
     crane_alpha = new_crane(false, true);
     crane_beta = new_crane(true, false);
 
-    lfork(&crane_alpha.thread, crane_alpha_entry);
-    lfork(&crane_beta.thread, crane_beta_entry);
-    lfork(&control_tower_gamma.thread, control_tower_entry);
+    lfork(&crane_alpha.thread, crane_entry, (void*)&crane_alpha);
+    lfork(&crane_beta.thread, crane_beta_entry, NULL);
+    lfork(&control_tower_gamma.thread, control_tower_entry, NULL);
 
     wait_success(&crane_alpha.thread, "crane_alpha");
     wait_success(&crane_beta.thread, "crane_beta");
@@ -95,11 +95,11 @@ int main(int argc, char* argv[]) {
     free_crane(&crane_beta);
 }
 
-void lfork(pthread_t* res, void* (*entry)(void*)) {
+void lfork(pthread_t* res, void* (*entry)(void*), void* data) {
     pthread_attr_t attributes;
     pthread_attr_init(&attributes);
 
-    passert_eq(int, "%d", pthread_create(res, &attributes, entry, NULL), 0);
+    passert_eq(int, "%d", pthread_create(res, &attributes, entry, data), 0);
 }
 
 void wait_success(pthread_t* thread, char* name) {

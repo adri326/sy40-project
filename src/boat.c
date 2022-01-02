@@ -51,6 +51,21 @@ void print_boat(const boat_t* boat, bool newline) {
     printf("%s] }%s", newline ? "\n" : "", newline ? "\n" : "");
 }
 
+bool boat_is_full(boat_t* boat) {
+    for (size_t n = 0; n < BOAT_CONTAINERS; n++) {
+        if (boat->containers[n].is_empty) return false;
+    }
+    return true;
+}
+
+size_t boat_loaded(boat_t* boat) {
+    size_t res = 0;
+    for (size_t n = 0; n < BOAT_CONTAINERS; n++) {
+        if (!boat->containers[n].is_empty) res += 1;
+    }
+    return res;
+}
+
 boat_deque* new_boat_deque(size_t capacity) {
     passert_gt(size_t, "%zu", capacity, 0, "Capacity may not be zero, as to avoid undefined behavior.");
 
@@ -187,4 +202,14 @@ void boat_lane_lock(boat_lane_t* boat_lane) {
 
 void boat_lane_unlock(boat_lane_t* boat_lane) {
     passert_eq(int, "%d", pthread_mutex_unlock(&boat_lane->mutex), 0);
+}
+
+boat_t* boat_lane_accepts(boat_lane_t* boat_lane, size_t destination) {
+    for (size_t n = 0; n < boat_lane->queue->length; n++) {
+        boat_t* boat = boat_deque_get(boat_lane->queue, n);
+
+        if (boat->destination == destination) return boat;
+    }
+
+    return NULL;
 }

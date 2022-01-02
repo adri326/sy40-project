@@ -51,4 +51,8 @@ void truck_lane_push(truck_lane_t* lane, truck_t* truck);
 /// Prints the truck lane, used for debugging
 void truck_lane_print(truck_lane_t* lane, bool short_version);
 
+/// Finds and returns a truck_t that can accept a container with destination `destination`;
+/// If none are found, returns NULL
+truck_t* truck_lane_accepts(truck_lane_t* lane, size_t destination);
+
 #endif // TRUCK_H
