@@ -12,6 +12,7 @@ themselves in `message.h`
 #include "message.h"
 #include "boat.h"
 #include "train.h"
+#include "truck.h"
 #include <pthread.h>
 
 struct crane {
@@ -19,14 +20,19 @@ struct crane {
     pthread_mutex_t message_mutex;
 
     boat_lane_t boat_lane;
+    bool load_boats;
+
     train_lane_t train_lane;
+    bool load_trains;
+
+    truck_lane_t truck_lane;
 
     pthread_t thread;
 };
 typedef struct crane crane_t;
 
 /// Creates a new crane_t instance
-crane_t new_crane();
+crane_t new_crane(bool load_boats, bool load_trains);
 
 /// Should be called once for each crane_t instance
 void free_crane(crane_t* crane);

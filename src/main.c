@@ -70,8 +70,8 @@ void* control_tower_entry(void* data) {
 
 int main(int argc, char* argv[]) {
     control_tower_gamma = new_control_tower();
-    crane_alpha = new_crane();
-    crane_beta = new_crane();
+    crane_alpha = new_crane(false, true);
+    crane_beta = new_crane(true, false);
 
     lfork(&crane_alpha.thread, crane_alpha_entry);
     lfork(&crane_beta.thread, crane_beta_entry);

@@ -1,9 +1,12 @@
 #include "crane.h"
 #include "assert.h"
 
-crane_t new_crane() {
+crane_t new_crane(bool load_boats, bool load_trains) {
     crane_t res;
     res.message_queue = NULL;
+
+    res.load_boats = load_boats;
+    res.load_trains = load_trains;
 
     pthread_mutexattr_t attributes;
     passert_eq(int, "%d", pthread_mutexattr_init(&attributes), 0);
@@ -13,6 +16,7 @@ crane_t new_crane() {
 
     res.boat_lane = new_boat_lane();
     res.train_lane = new_train_lane();
+    res.truck_lane = new_truck_lane();
 
     return res;
 }
@@ -21,6 +25,7 @@ void free_crane(crane_t* crane) {
     free_message(crane->message_queue);
     free_boat_lane(&crane->boat_lane);
     free_train_lane(&crane->train_lane);
+    free_truck_lane(&crane->truck_lane);
 
     pthread_mutex_destroy(&crane->message_mutex);
 }
