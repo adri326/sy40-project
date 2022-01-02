@@ -59,6 +59,13 @@ bool wagon_is_full(wagon_t* wagon) {
     return true;
 }
 
+bool wagon_is_empty(wagon_t* wagon) {
+    for (size_t n = 0; n < WAGON_CONTAINERS; n++) {
+        if (!wagon->containers[n].is_empty) return false;
+    }
+    return true;
+}
+
 size_t wagon_loaded(wagon_t* wagon) {
     size_t res = 0;
     for (size_t n = 0; n < WAGON_CONTAINERS; n++) {

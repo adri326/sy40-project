@@ -9,10 +9,13 @@ themselves in `message.h`
 #ifndef CRANE_H
 #define CRANE_H
 
+struct crane;
+
 #include "message.h"
 #include "boat.h"
 #include "train.h"
 #include "truck.h"
+#include "control_tower.h"
 #include <pthread.h>
 
 struct crane {
@@ -26,6 +29,8 @@ struct crane {
     bool load_trains;
 
     truck_lane_t truck_lane;
+
+    struct control_tower* control_tower;
 
     pthread_t thread;
 };

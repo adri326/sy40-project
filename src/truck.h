@@ -58,4 +58,7 @@ void truck_lane_print(truck_lane_t* lane, bool short_version);
 /// If none are found, returns NULL
 truck_t* truck_lane_accepts(truck_lane_t* lane, size_t destination);
 
+/// Removes a truck from the truck lane, returns true iff it was present and removed
+bool truck_lane_remove(truck_lane_t* lane, truck_t* truck);
+
 #endif // TRUCK_H

@@ -79,6 +79,30 @@ message_t* crane_receive(crane_t* crane) {
     }
 }
 
+void crane_notify_boat(crane_t* crane, enum message_type type) {
+    union message_data msg_data;
+    msg_data.boat = crane->boat_lane.current_boat;
+    crane->boat_lane.has_current_boat = false;
+
+    control_tower_send(crane->control_tower, new_message(type, msg_data));
+}
+
+void crane_notify_truck(crane_t* crane, enum message_type type, truck_t* truck) {
+    union message_data msg_data;
+    msg_data.truck = truck;
+
+    passert(truck_lane_remove(&crane->truck_lane, truck), "Truck isn't in the truck lane!\n");
+
+    control_tower_send(crane->control_tower, new_message(type, msg_data));
+}
+
+void crane_notify_wagon(crane_t* crane, enum message_type type, wagon_t* wagon) {
+    union message_data msg_data;
+    msg_data.wagon = wagon;
+
+    control_tower_send(crane->control_tower, new_message(type, msg_data));
+}
+
 bool crane_unload(crane_t* crane, container_holder_t* holder) {
     size_t destination = holder->container.destination;
 
@@ -90,7 +114,10 @@ bool crane_unload(crane_t* crane, container_holder_t* holder) {
                 holder,
                 boat_first_empty(boat)
             );
-            // TODO: notify γ if the boat is full
+            if (boat_is_full(boat)) {
+                crane_notify_boat(crane, BOAT_FULL);
+            }
+            return true;
         }
     }
 
@@ -103,7 +130,10 @@ bool crane_unload(crane_t* crane, container_holder_t* holder) {
                 wagon_first_empty(wagon)
             );
             train_lane_unlock(&crane->train_lane);
-            // TODO: notify γ if the wagon is full
+
+            if (wagon_is_full(wagon)) {
+                crane_notify_wagon(crane, WAGON_FULL, wagon);
+            }
             return true;
         }
         train_lane_unlock(&crane->train_lane);
@@ -116,7 +146,8 @@ bool crane_unload(crane_t* crane, container_holder_t* holder) {
             holder,
             &truck->container
         );
-        // TODO: notify γ if the truck is full
+
+        crane_notify_truck(crane, TRUCK_FULL, truck);
         return true;
     } else {
         return false;
@@ -160,19 +191,51 @@ void* crane_entry(void* data) {
                 if (crane_unload(crane, &boat->containers[n])) {
                     could_move = true;
                     printf("SUCCESS!\n");
-                    // TODO: notify γ if the boat is empty
-                    break;
                 } else {
                     has_cargo = true;
                 }
             }
 
             if (!has_cargo) {
-                boat_lane_lock(&crane->boat_lane);
-                boat_lane_unlock(&crane->boat_lane);
+                crane_notify_boat(crane, BOAT_EMPTY);
+            }
+        }
+
+        // Unload from the train lane
+        if (!crane->load_trains) {
+            train_lane_lock(&crane->train_lane);
+
+            for (size_t n = 0; n < crane->train_lane.n_wagons; n++) {
+                wagon_t* wagon = crane->train_lane.wagons[n];
+                if (!wagon_is_empty(wagon)) continue;
+
+                for (size_t o = 0; o < WAGON_CONTAINERS; o++) {
+                    if (wagon->containers[o].is_empty) continue;
+
+                    if (crane_unload(crane, &wagon->containers[o])) {
+                        could_move = true;
+                        printf("SUCCESS!\n");
+                    }
+                }
             }
 
-            if (could_move) continue;
+            train_lane_unlock(&crane->train_lane);
+        }
+
+        // Unload from the truck lane
+        struct truck_ll* current_truck = crane->truck_lane.trucks;
+        while (current_truck != NULL) {
+            truck_t* truck = current_truck->truck;
+            if (!truck->loading) {
+                if (crane_unload(crane, &truck->container)) {
+                    could_move = true;
+                    printf("SUCCESS!\n");
+                    current_truck = current_truck->next;
+                    crane_notify_truck(crane, TRUCK_EMPTY, truck);
+                    continue;
+                }
+            }
+            current_truck = current_truck->next;
         }
     }
 

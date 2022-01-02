@@ -127,3 +127,25 @@ truck_t* truck_lane_accepts(truck_lane_t* lane, size_t destination) {
 
     return NULL;
 }
+
+bool truck_lane_remove(truck_lane_t* lane, truck_t* truck) {
+    passert_neq(truck_t*, "%p", truck, NULL);
+    struct truck_ll* current = lane->trucks;
+
+    if (current == NULL) return false;
+
+    if (current->truck == truck) {
+        lane->trucks = current->next;
+        return true;
+    }
+
+    while (current != NULL && current->next != NULL) {
+        if (current->next->truck == truck) {
+            current->next = current->next->next;
+            return true;
+        }
+        current = current->next;
+    }
+
+    return false;
+}

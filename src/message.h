@@ -7,14 +7,22 @@ Common class for `control_tower.h` and `crane.h`, which handles the messages.
 #define MESSAGE_H
 
 #include "boat.h"
+#include "truck.h"
+#include "train.h"
 
 enum message_type {
     BOAT_EMPTY,
-    BOAT_FULL
+    BOAT_FULL,
+    TRUCK_FULL,
+    TRUCK_EMPTY,
+    WAGON_FULL,
+    WAGON_EMPTY
 };
 
 union message_data {
     boat_t boat;
+    truck_t* truck;
+    wagon_t* wagon; // NOTE: this value of wagon may not be dereferenced
 };
 
 struct message {

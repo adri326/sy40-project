@@ -109,6 +109,7 @@ bool boat_deque_pop_front(boat_deque* queue, boat_t* dest) {
     if (queue->length == 0) return false;
     *dest = queue->buffer[queue->begin];
     queue->begin = (queue->begin + 1) % queue->capacity;
+    queue->length -= 1;
     return true;
 }
 
