@@ -29,4 +29,37 @@ boat_t new_boat(size_t destination, size_t n_cargo);
 
 /// Prints a boat, used for debugging.
 void print_boat(const boat_t* boat, bool newline);
+
+struct boat_deque {
+    boat_t* buffer;
+    size_t capacity;
+    size_t begin;
+    size_t length;
+};
+typedef struct boat_deque boat_deque;
+
+/// Creates a new, empty boat_deque instance, with `capacity` capacity
+/// `capacity` must be greater than zero (or else UB might happen)
+boat_deque* new_boat_deque(size_t capacity);
+
+/// Frees a boat_deque instance. Must be called, or else memory will be leaked
+void free_boat_deque(boat_deque* queue);
+
+/// Reallocates the buffer of `queue` to be of capacity `capacity`
+void boat_deque_resize(boat_deque* queue, size_t capacity);
+
+/// Pops a boat at the head of the queue; if the queue is empty, returns false.
+bool boat_deque_pop_front(boat_deque* queue, boat_t* dest);
+
+/// Returns a reference to the n-th element from the head of the queue.
+/// This reference is only valid until queue is manipulated.
+/// If the queue is empty, returns NULL.
+boat_t* boat_deque_get(boat_deque* queue, size_t n);
+
+/// Pushes a boat onto the queue. If the queue is full, reallocates a new buffer
+void boat_deque_push_back(boat_deque* queue, boat_t boat);
+
+/// Prints a boat queue, used for debugging
+void boat_deque_print(boat_deque* queue, bool short_version);
+
 #endif // BOAT_H

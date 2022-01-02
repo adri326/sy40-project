@@ -32,8 +32,17 @@ void* crane_beta_entry(void* data) {
 }
 
 void* control_tower_entry(void* data) {
-    boat_t boat = new_boat(2, 3);
-    print_boat(&boat, true);
+    boat_t boat_1 = new_boat(2, 3);
+    boat_t boat_2 = new_boat(1, 2);
+    boat_deque* queue = new_boat_deque(1);
+    boat_deque_push_back(queue, boat_1);
+    boat_deque_push_back(queue, boat_2);
+
+    boat_deque_print(queue, false);
+    boat_deque_print(queue, true);
+
+    free_boat_deque(queue);
+    // print_boat(&boat, true);
     pthread_exit(NULL);
 }
 

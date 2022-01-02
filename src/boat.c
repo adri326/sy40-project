@@ -49,3 +49,88 @@ void print_boat(const boat_t* boat, bool newline) {
 
     printf("%s] }%s", newline ? "\n" : "", newline ? "\n" : "");
 }
+
+boat_deque* new_boat_deque(size_t capacity) {
+    passert_gt(size_t, "%zu", capacity, 0, "Capacity may not be zero, as to avoid undefined behavior.");
+
+    boat_deque* res = (boat_deque*)malloc(sizeof(boat_deque));
+    res->buffer = (boat_t*)malloc(capacity * sizeof(boat_t));
+    res->capacity = capacity;
+    res->length = 0;
+    res->begin = 0;
+
+    return res;
+}
+
+void free_boat_deque(boat_deque* queue) {
+    free(queue->buffer);
+    free(queue);
+}
+
+void boat_deque_resize(boat_deque* queue, size_t capacity) {
+    boat_t* new_buffer = (boat_t*)malloc(capacity * sizeof(boat_t));
+    passert_neq(boat_t*, "%p", new_buffer, NULL, "Couldn't allocate %zu bytes of memory", capacity * sizeof(boat_t));
+
+    // Compiler plz optimize away
+    for (size_t n = 0; n < queue->length; n++) {
+        new_buffer[n] = queue->buffer[(queue->begin + n) % queue->capacity];
+    }
+
+    free(queue->buffer);
+    queue->buffer = new_buffer;
+    queue->capacity = capacity;
+    queue->begin = 0;
+}
+
+bool boat_deque_pop_front(boat_deque* queue, boat_t* dest) {
+    if (queue->length == 0) return false;
+    *dest = queue->buffer[queue->begin];
+    queue->begin = (queue->begin + 1) % queue->capacity;
+    return true;
+}
+
+boat_t* boat_deque_get(boat_deque* queue, size_t n) {
+    if (queue->length == 0) return NULL;
+    return &queue->buffer[(queue->begin + n) % queue->capacity];
+}
+
+void boat_deque_push_back(boat_deque* queue, boat_t boat) {
+    if (queue->length == queue->capacity) {
+        boat_deque_resize(queue, queue->capacity * 2);
+    }
+    queue->buffer[(queue->begin + queue->length) % queue->capacity] = boat;
+    queue->length += 1;
+}
+
+void boat_deque_print(boat_deque* queue, bool short_version) {
+    if (short_version) {
+        printf("BoatDeque { length = %zu, boats = [\n", queue->length);
+        for (size_t n = 0; n < queue->length; n++) {
+            printf("  (");
+            boat_t* boat = boat_deque_get(queue, n);
+            for (size_t o = 0; o < BOAT_CONTAINERS; o++) {
+                if (boat->containers[o].is_empty) {
+                    printf("-");
+                } else if (boat->destination != boat->containers[o].container.destination) {
+                    printf("x");
+                } else {
+                    printf("v");
+                }
+            }
+            printf(") -> %s (%zu)", DESTINATION_NAMES[boat->destination], boat->destination);
+            if (n < queue->length - 1) printf(",");
+            printf("\n");
+        }
+        printf("] }\n");
+    } else {
+        printf("BoatDeque { length = %zu, boats = [\n", queue->length);
+        for (size_t n = 0; n < queue->length; n++) {
+            printf("  ");
+
+            print_boat(boat_deque_get(queue, n), false);
+
+            if (n < queue->length - 1) printf(",\n");
+        }
+        printf("\n] }\n");
+    }
+}
