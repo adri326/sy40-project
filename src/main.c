@@ -38,7 +38,6 @@ void* crane_alpha_entry(void* data) {
     passert(boat_deque_pop_front(boat_lane_alpha.queue, &msg_data.boat));
     message_t* msg = new_message(BOAT_EMPTY, msg_data);
     control_tower_send(&control_tower_gamma, msg);
-    printf("Sent message\n");
 
     boat_lane_unlock(&boat_lane_alpha);
 
@@ -53,13 +52,11 @@ void* crane_beta_entry(void* data) {
 
 void* control_tower_entry(void* data) {
     while (true) {
-        printf("Waiting for message\n");
         message_t* message = control_tower_receive(&control_tower_gamma);
-        printf("Received message\n");
 
         print_message(message);
 
-        free(message);
+        free_message(message);
         break;
     }
 

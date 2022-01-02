@@ -1,35 +1,5 @@
 #include "control_tower.h"
-#include "ulid.h"
 #include "assert.h"
-
-message_t* new_message(enum message_type type, union message_data data) {
-    struct ulid_generator* generator = get_generator();
-    message_t* res = (message_t*)malloc(sizeof(message_t));
-
-    res->type = type;
-    res->data = data;
-    res->next = NULL;
-    char encoded[27];
-    ulid_generate(generator, encoded);
-    ulid_decode(res->ulid, encoded);
-
-    return res;
-}
-
-void print_message(message_t* message) {
-    switch (message->type) {
-        case BOAT_EMPTY:
-            printf("Message { type = BOAT_EMPTY, data =\n");
-            print_boat(&message->data.boat, true);
-            printf("}\n");
-            break;
-        case BOAT_FULL:
-            printf("Message { type = BOAT_FULL, data =\n");
-            print_boat(&message->data.boat, true);
-            printf("}\n");
-            break;
-    }
-}
 
 control_tower_t new_control_tower() {
     control_tower_t res;
@@ -51,12 +21,7 @@ control_tower_t new_control_tower() {
 }
 
 void free_control_tower(control_tower_t* control_tower) {
-    message_t* current_message = control_tower->message_queue;
-    while (current_message != NULL) {
-        message_t* message = current_message;
-        current_message = message->next;
-        free(message);
-    }
+    free_message(control_tower->message_queue);
 
     pthread_mutex_destroy(&control_tower->message_mutex);
     pthread_cond_destroy(&control_tower->message_monitor);
