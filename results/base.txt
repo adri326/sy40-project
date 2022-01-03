@@ -1,0 +1,6 @@
+Truck => Bordeaux (2)
+Truck => Paris (0)
+Truck => Paris (0)
+Truck => Suez (1)
+Truck => New York (3)
+Truck => Paris (0)
