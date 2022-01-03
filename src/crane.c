@@ -166,6 +166,8 @@ void crane_handle_message(crane_t* crane, message_t* message) {
             truck_lane_push(&crane->truck_lane, message->data.truck);
             break;
         case CRANE_STUCK:
+            // usleep(rand() % 1000000);
+            // print_crane(crane);
             pthread_exit(NULL);
             break;
         default:
